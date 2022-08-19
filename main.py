@@ -136,23 +136,43 @@ for i in range(2):
     ground = Ground(WIDTH * i)
     groundGroup.add(ground)
 
+coinsGroup = pygame.sprite.Group()
+for i in range(2):
+    coin = get_random_coins(WIDTH * i + 1000)
+    coinsGroup.add(coin)
+
+obstacleGroup = pygame.sprite.Group()
+for i in range(2):
+    obstacle = get_random_obstacles(WIDTH * i + 1000)
+    obstacleGroup.add(obstacle)
+
 gameloop = True
 
 
 def draw():
     playerGroup.draw(game_window)
     groundGroup.draw(game_window)
+    obstacleGroup.draw(game_window)
+    coinsGroup.draw(game_window)
 
 
 def update():
     playerGroup.update()
     groundGroup.update()
+    obstacleGroup.update()
+    coinsGroup.update()
 
 
 clock = pygame.time.Clock()
+placar = 0
 while gameloop:
-    clock.tick(30)
     game_window.blit(BACKGROUND, (0, 0))
+    font = pygame.font.SysFont('Arial', 30)
+    text = font.render('Placar: ', True, [255, 255, 255])
+    game_window.blit(text, [1100, 20])
+    contador = font.render(f'{placar}', True, [255, 255, 255])
+    game_window.blit(contador, [1125, 50])
+    clock.tick(30)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -163,11 +183,36 @@ while gameloop:
         newGround = Ground(WIDTH - 20)
         groundGroup.add(newGround)
 
+    if is_off_screen(obstacleGroup.sprites()[0]):
+        obstacleGroup.remove(obstacleGroup.sprites()[0])
+        newObstacle = get_random_obstacles(WIDTH * 1.5)
+        obstacleGroup.add(newObstacle)
+        newCoin = get_random_coins(WIDTH * 2)
+        newCoin1 = get_random_coins(WIDTH * 2.2)
+        newCoin2 = get_random_coins(WIDTH * 2.4)
+        newCoin3 = get_random_coins(WIDTH * 2.6)
+        newCoin4 = get_random_coins(WIDTH * 2.8)
+        coinsGroup.add(newCoin)
+        coinsGroup.add(newCoin1)
+        coinsGroup.add(newCoin2)
+        coinsGroup.add(newCoin3)
+        coinsGroup.add(newCoin4)
+
     if pygame.sprite.groupcollide(playerGroup, groundGroup, False, False):
         SPEED = 0
         print('collision')
     else:
         SPEED = 10
+
+    if pygame.sprite.groupcollide(playerGroup, coinsGroup, False, True):
+        placar += 1
+
+    if placar % 5 == 0 and placar != 0:
+        GAME_SPEED += 0.02
+        print('GAMESPEED ALERTADA')
+
+    if pygame.sprite.groupcollide(playerGroup, obstacleGroup, False, False):
+        break
 
     update()
     draw()
