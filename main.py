@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 
 WIDTH = 1200
 HEIGHT = 600
@@ -36,7 +36,8 @@ class Player(pygame.sprite.Sprite):
                 self.rect[0] -= GAME_SPEED
             self.current_image = (self.current_image + 1) % 10
             self.image = self.image_run[self.current_image]
-            self.image = pygame.transform.scale(self.image,[100, 100])
+            self.image = pygame.transform.scale(self.image, [100, 100])
+
         move_player(self)
         self.rect[1] += SPEED
 
@@ -47,6 +48,7 @@ class Player(pygame.sprite.Sprite):
                 self.image = pygame.image.load('sprites/Fly.png').convert_alpha()
                 self.image = pygame.transform.scale(self.image, [100, 100])
                 print('fly')
+
         fly(self)
 
         def fall(self):
@@ -55,6 +57,7 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.image_fall
                 self.image = pygame.transform.scale(self.image, [100, 100])
                 print('falling')
+
         fall(self)
 
 
@@ -62,7 +65,7 @@ class Ground(pygame.sprite.Sprite):
     def __init__(self, xpos):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('sprites/ground.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image,(GROUND_WIDTH, GROUND_HEIGHT))
+        self.image = pygame.transform.scale(self.image, (GROUND_WIDTH, GROUND_HEIGHT))
         self.rect = self.image.get_rect()
         self.rect[0] = xpos
         self.rect[1] = HEIGHT - GROUND_HEIGHT
@@ -70,15 +73,59 @@ class Ground(pygame.sprite.Sprite):
     def update(self, *args):
         self.rect[0] -= GAME_SPEED
 
+
+class Obstacles(pygame.sprite.Sprite):
+    def __init__(self, xpos, ysize):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('sprites/Box.png').convert_alpha()
+        self.image = pygame.transform.scale(self.image, [100, 100])
+        self.rect = pygame.Rect(100, 100, 100, 100)
+        self.rect[0] = xpos
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect[1] = HEIGHT - ysize
+
+    def update(self, *args):
+        self.rect[0] -= GAME_SPEED
+        print('obstacle')
+
+
+class Coins(pygame.sprite.Sprite):
+    def __init__(self, xpos, ysize):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('sprites/coin.png').convert_alpha()
+        self.image = pygame.transform.scale(self.image, [40, 40])
+        self.rect = pygame.Rect(100, 100, 20, 20)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect[0] = xpos
+        self.rect[1] = HEIGHT - ysize
+
+    def update(self, *args):
+        self.rect[0] -= GAME_SPEED
+        print('coin')
+
+
+def get_random_obstacles(xpos):
+    size = random.randint(120, 600)
+    box = Obstacles(xpos, size)
+    return box
+
+
+def get_random_coins(xpos):
+    size = random.randint(60, 500)
+    coin = Coins(xpos, size)
+    return coin
+
+
 def is_off_screen(sprite):
     return sprite.rect[0] < -(sprite.rect[2])
+
 
 pygame.init()
 game_window = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.display.set_caption('Jogo 01')
 
 BACKGROUND = pygame.image.load('sprites/background_03.jpg')
-BACKGROUND = pygame.transform.scale(BACKGROUND,[WIDTH,HEIGHT])
+BACKGROUND = pygame.transform.scale(BACKGROUND, [WIDTH, HEIGHT])
 
 playerGroup = pygame.sprite.Group()
 player = Player()
@@ -91,13 +138,17 @@ for i in range(2):
 
 gameloop = True
 
+
 def draw():
     playerGroup.draw(game_window)
     groundGroup.draw(game_window)
 
+
 def update():
     playerGroup.update()
     groundGroup.update()
+
+
 clock = pygame.time.Clock()
 while gameloop:
     clock.tick(30)
